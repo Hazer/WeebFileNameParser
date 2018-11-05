@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Description>First Version</Description>
+    <Copyright>MIT</Copyright>
+    <PackageLicenseUrl>https://github.com/littleweeb/WeebFileNameParser/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/littleweeb/WeebFileNameParser</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/littleweeb/WeebFileNameParser</RepositoryUrl>
+    <RepositoryType>GIT</RepositoryType>
+    <PackageTags>File Name Parser Anime</PackageTags>
+    <PackageReleaseNotes>First Release.</PackageReleaseNotes>
+  </PropertyGroup>
+
+</Project>

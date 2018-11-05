@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2003
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "WeebFileNameParserTest\Test.csproj", "{B1F6B0ED-E66F-4FCD-BC76-C80BA506ECB7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4D4E9758-306B-46B1-AC04-79BEEBBDAE66} = {4D4E9758-306B-46B1-AC04-79BEEBBDAE66}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeebFileNameParser", "WeebFileNameParser\WeebFileNameParser.csproj", "{4D4E9758-306B-46B1-AC04-79BEEBBDAE66}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B1F6B0ED-E66F-4FCD-BC76-C80BA506ECB7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1F6B0ED-E66F-4FCD-BC76-C80BA506ECB7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1F6B0ED-E66F-4FCD-BC76-C80BA506ECB7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1F6B0ED-E66F-4FCD-BC76-C80BA506ECB7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D4E9758-306B-46B1-AC04-79BEEBBDAE66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D4E9758-306B-46B1-AC04-79BEEBBDAE66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D4E9758-306B-46B1-AC04-79BEEBBDAE66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D4E9758-306B-46B1-AC04-79BEEBBDAE66}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0E691D73-32C1-4B1E-A096-6DBC1B3FE0B1}
+	EndGlobalSection
+EndGlobal
