@@ -31,36 +31,16 @@ namespace ConsoleApp1
 
 
 
-                Dictionary<string, string[]> resultofprocessing = filenameParser.ProcessFileName(filename);
-
-                
-                foreach (KeyValuePair<string, string[]> resultparser in resultofprocessing)
-                {
-
-                    Console.WriteLine(resultparser.Key + ":");
-                    foreach (string value in resultparser.Value)
-                    {
-                        Console.WriteLine("     " + value);
-                    }
-
-                }
-
-
-
-                Dictionary<string, Dictionary<string, int>> perWord = filenameParser.ParseStaticWords(resultofprocessing);
+                Dictionary<string, string> resultofprocessing = filenameParser.ParseFullString(filename);
 
                 Console.WriteLine("--------------RESULT---------------");
 
-                foreach (KeyValuePair<string, Dictionary<string, int>> resultparser in perWord)
+                foreach (KeyValuePair<string, string> resultparser in resultofprocessing)
                 {
-
-                    Console.WriteLine(resultparser.Key + ":");
-                    foreach (KeyValuePair<string, int> value in resultparser.Value)
-                    {
-                        Console.WriteLine("     " + value.Key);
-                    }
-
+                    Console.WriteLine(resultparser.Key + ":" + resultparser.Value);
                 }
+
+
                 Console.ReadLine();
             }
         }

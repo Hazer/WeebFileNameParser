@@ -10,7 +10,7 @@ namespace WeebFileNameParserLibrary
 {
     public class WeebFileNameParser
     {
-        private readonly Dictionary<string, Dictionary<string, string[]>> Checkers;
+        private readonly Dictionary<string, Dictionary<string, string>> Checkers;
 
         private readonly string[] Splitters = new string[] {
             " ",
@@ -22,7 +22,12 @@ namespace WeebFileNameParserLibrary
             "\\"
         };
 
+        private readonly string[] SpecialChars = new string[]{
+             "[","]","{","}","(",")"," ", ".", "_", " - ", ",", "/", "\\",":",";","`","'", "\"", "!", "@", "#", "$", "%","^","&","*","(",")","+","="
+        };
+
         private readonly string[][] Encapsulations = new string[][] {
+
            new string[]{
                 "[","]"
            },
@@ -31,20 +36,7 @@ namespace WeebFileNameParserLibrary
            },
            new string[]{
                 "(",")"
-           },
-        };
-
-        private readonly Dictionary<string, int> RomanNumbers = new Dictionary<string, int>{
-            { "I", 1 },
-            { "II", 2 },
-            { "III", 3 },
-            { "IV", 4 },
-            { "V", 5 },
-            { "VI", 6 },
-            { "VII", 7 },
-            { "VIII", 8 },
-            { "IX", 9 },
-            { "X", 10 }
+           }
         };
 
         public WeebFileNameParser()
@@ -52,691 +44,344 @@ namespace WeebFileNameParserLibrary
             Checkers = WeebFileNameTags.ToCheckDefault;
         }
 
-        public WeebFileNameParser(Dictionary<string, Dictionary<string, string[]>> SetCheckers)
+        public WeebFileNameParser(Dictionary<string, Dictionary<string, string>> SetCheckers)
         {
             Checkers = SetCheckers;
         }
 
-        public Dictionary<string, string[]> ProcessFileName(string filename)
+      
+
+
+        public Dictionary<string, string> ParseFullString(string fullString)
         {
 
+            Dictionary<string, string> result = new Dictionary<string, string>();
+            List<string> words = new List<string>();
+            List<string> wordsParsed = new List<string>();
+            List<string> not_encapsulated = new List<string>();
             List<string> encapsulated = new List<string>();
-            List<string> notencapsulated = new List<string>();
+            int lastBracketPosition = 0;
+            int firstBracketPosition = fullString.Length - 1;
+            string lowercase = fullString.ToLower();
+            string forbracketdetection = lowercase;
+            int bracketIndex = 0;
 
-            for (int i = 0; i < Encapsulations.Length; i++)
+            string encapsulatedString = "";
+            string not_encapsulatedString = "";
+
+            //start splitting the string into seperate words
+            string splittedString = fullString;
+            foreach (string splitter in Splitters)
             {
-                try
-                {
-                    string patternInsideEncapsulations = @"(?<=\" + Encapsulations[i][0] + @")(.*?)(?=\" + Encapsulations[i][1] + ")";
-
-                    MatchCollection matchesInsideEncapsulations = Regex.Matches(filename, patternInsideEncapsulations);
-
-                    List<string[]> wordsInsideEncapsulations = new List<string[]>();
-
-                    foreach (Match match in matchesInsideEncapsulations)
-                    {
-                        encapsulated.Add(match.Value);
-                    }
-
-                    string partBeforeEncapsulation = filename.Split(new string[] { Encapsulations[i][0] }, StringSplitOptions.None)[0];
-                    string partAfterEncapsulation = filename.Split(new string[] { Encapsulations[i][1] }, StringSplitOptions.None)[filename.Split(new string[] { Encapsulations[i][1] }, StringSplitOptions.None).Length - 1];
-                    List<string[]> wordsOutsideEncapsulations = new List<string[]>();
-
-
-                    for (int x = 0; x < Encapsulations.Length; x++)
-                    {
-                        string patternOutsideEncapsulations = @"(?<=\" + Encapsulations[i][1] + @")(.*?)(?=\" + Encapsulations[x][0] + ")";
-
-                        MatchCollection matchesOutsideEncapsulations = Regex.Matches(filename, patternOutsideEncapsulations);
-
-                        foreach (Match match in matchesOutsideEncapsulations)
-                        {
-                            if (!notencapsulated.Contains(match.Value) && (match.Value != " " || match.Value != "_" || match.Value != "." || match.Value != "-"))
-                            {
-                                notencapsulated.Add(match.Value);
-                            }
-                        }
-
-                        if (matchesOutsideEncapsulations.Count == 0)
-                        {
-                            notencapsulated.Add(filename);
-                        }
-
-                        if (!partBeforeEncapsulation.Contains(Encapsulations[i][0]) || !partBeforeEncapsulation.Contains(Encapsulations[i][1]))
-                        {
-                            if (!notencapsulated.Contains(partBeforeEncapsulation) && (partBeforeEncapsulation != " " || partBeforeEncapsulation != "_" || partBeforeEncapsulation != "." || partBeforeEncapsulation != "-"))
-                            {
-                                notencapsulated.Add(partBeforeEncapsulation);
-                            }
-                        }
-
-                        if (!partAfterEncapsulation.Contains(Encapsulations[i][0]) || !partAfterEncapsulation.Contains(Encapsulations[i][1]))
-                        {
-                            if (!notencapsulated.Contains(partAfterEncapsulation) && (partAfterEncapsulation != " " || partAfterEncapsulation != "_" || partAfterEncapsulation != "." || partAfterEncapsulation != "-"))
-                            {
-                                notencapsulated.Add(partAfterEncapsulation);
-                            }
-                        }
-                    }
-                   
-
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.ToString());
-                }
-
+                splittedString = splittedString.Replace(splitter, "|");
             }
 
-
-
-            List<string> finalEncapsulated = new List<string>();
-            foreach (string wordencapsulated in encapsulated)
+            foreach (string removeThisChar in SpecialChars)
             {
-                string replacedSplitters = wordencapsulated;
-                for (int i = 0; i < Splitters.Length; i++)
-                {
-                    if (replacedSplitters.Contains(Splitters[i]))
-                    {
-                        replacedSplitters = replacedSplitters.Replace(Splitters[i], "|");
-                    }
-                }
-
-                string[] words = replacedSplitters.Split('|');
-                if (words.Length > 1)
-                {
-                    foreach (string word in words)
-                    {
-                        if (!finalEncapsulated.Contains(word))
-                        {
-
-                            finalEncapsulated.Add(word);
-                        }
-                    }
-                }
-                else
-                {
-                    finalEncapsulated.Add(wordencapsulated);
-                }
+                splittedString = splittedString.Replace(removeThisChar, "|");
             }
 
-            List<string> finalNotEncapsulated = new List<string>();
-
-            foreach (string wordnotencapsulated in notencapsulated)
+            string[] splitted = splittedString.Split('|');
+            foreach (string word in splitted)
             {
-                bool isencapsulated = false;
-                foreach (string wordencapsulated in encapsulated)
+                if (word.Length > 0)
                 {
-                    if (wordnotencapsulated.Contains(wordencapsulated))
+                    if (!words.Contains(word.ToUpper()))
                     {
-                        isencapsulated = true;
-                        break;
-                    }
-                }
-                if (!isencapsulated)
-                {
-                    string replacedSplitters = wordnotencapsulated;
-                    for (int i = 0; i < Splitters.Length; i++)
-                    {
-                        if (replacedSplitters.Contains(Splitters[i]))
-                        {
-                            replacedSplitters = replacedSplitters.Replace(Splitters[i], "|");
-                        }
-                    }
-
-                    string[] words = replacedSplitters.Split('|');
-                    if (words.Length > 1)
-                    {
-                        foreach (string word in words)
-                        {
-                            if (!finalNotEncapsulated.Contains(word))
-                            {
-
-                                finalNotEncapsulated.Add(word);
-                            }
-                        }
+                        words.Add(word.ToUpper());
                     }
                 }
             }
 
-            encapsulated.Add(Path.GetExtension(filename).Substring(1));
-
-            Dictionary<string, string[]> toReturn = new Dictionary<string, string[]>();
-            toReturn.Add("encapsulated", finalEncapsulated.ToArray());
-            toReturn.Add("notencapsulated", finalNotEncapsulated.ToArray());
-
-            return toReturn;
-
-        }
-
-
-        public Dictionary<string, Dictionary<string, int>> ParseStaticWords(Dictionary<string, string[]> words)
-        {
-
-            Dictionary<string, Dictionary<string, int>> dictionaryResult = new Dictionary<string, Dictionary<string, int>>();
-            foreach (KeyValuePair<string, string[]> resultparser in words)
+            string nameToCheck = fullString.ToUpper();
+            //compare words with values from static tags/checkers
+            foreach (KeyValuePair<string, Dictionary<string, string>> toCheckPair in WeebFileNameTags.ToCheckDefault)
             {
+                string key = toCheckPair.Key;
 
 
-                string type = resultparser.Key;
-                string[] listWithWords = resultparser.Value;
 
-                List<string> wordsList = new List<string>(listWithWords);
-                List<string> wordsToRemove = new List<string>();
-
-                int wordIndex = 0;
-                
-
-                foreach (string word in listWithWords)
+                foreach (KeyValuePair<string, string> keyToCheck in toCheckPair.Value)
                 {
-                    foreach (KeyValuePair<string, Dictionary<string, string[]>> check in Checkers)
-                    {
-                        string check_type = check.Key;
-                        int counter = 0;
-                        
-                        foreach (KeyValuePair<string, string[]> categoryToCheck in check.Value)
-                        {
-
-                            
-                            foreach (string string_to_check in categoryToCheck.Value)
-                            {
-                                try
-                                {
-                                    if (word.ToUpper().Contains(string_to_check))
-                                    {
-                                     
-                                        if (type == "encapsulated" && word.Length <= string_to_check.Length)
-                                        {
-                                            Dictionary<string, int> indexAndResult = new Dictionary<string, int>();
-                                            indexAndResult.Add(categoryToCheck.Key, counter);
-
-                                          
-                                            if (!dictionaryResult.ContainsKey(check_type))
-                                            {
-                                                dictionaryResult.Add(check_type, indexAndResult);
-                                            }
-                                            wordsToRemove.Add(word);
-                                            
-                                               
-                                            counter++;
-                                        }
-                                        else if (type != "encapsulated" && word.Length <= string_to_check.Length)
-                                        {
-                                            Dictionary<string, int> indexAndResult = new Dictionary<string, int>();
-                                            indexAndResult.Add(categoryToCheck.Key, counter);
-                                            if (!dictionaryResult.ContainsKey(check_type))
-                                            {
-                                                dictionaryResult.Add(check_type, indexAndResult);
-                                            }
-                                            wordsToRemove.Add(word);
-
-                                            counter++;
-                                        }
-                                           
-                                            
-                                    }
-                                }
-                                catch
-                                {
-
-                                }
-                            }
-                        }
-                    }
                     
-                    wordIndex++;
-                }
-
-               
-
-               
-
-               
-
-                Dictionary<string, int> remainingStrings = new Dictionary<string, int>();
-                Dictionary<string, int> remainingIntegers = new Dictionary<string, int>();
-                Dictionary<string, int> crc32 = new Dictionary<string, int>();
-                Dictionary<string, int> season = new Dictionary<string, int>();
-                Dictionary<string, int> episode = new Dictionary<string, int>();
-
-
-                bool foundSeason = false;
-                if (dictionaryResult.ContainsKey("Seasonal"))
-                {
-                    int indexToRemove = 0;
-                    foreach (string word in wordsList)
+                    int indexOfWord = words.IndexOf(keyToCheck.Key);
+                    if (indexOfWord >= 0)
                     {
-                        foreach (KeyValuePair<string, string[]> seasonPrefixes in WeebFileNameTags.SeasonPrefixes)
+                        string wordFound = words[indexOfWord];
+                        if (!wordsParsed.Contains(wordFound))
                         {
-                            foreach (string tocheck in seasonPrefixes.Value)
-                            {
-                                if (word.ToUpper().Contains(tocheck))
-                                {
-                                    season.Add(seasonPrefixes.Key, 0);
-                                    wordsToRemove.Add(word);
-                                    foundSeason = true;
-                                    break;
-                                }
-                            }
-                            if (foundSeason)
-                            {
-                                break;
-                            }
+                            wordsParsed.Add(wordFound);
+                            result.Add(key, keyToCheck.Value);
+                            break;
                         }
-                        if (foundSeason)
+                    }
+                } 
+            }
+
+            //start disecting where the remaining words are (within or outside []/{}/())
+            //try to determine start(key) and end (value) position of encapsulation brackets. 
+            Dictionary<int, int> bracket_positions = new Dictionary<int, int>();
+            
+            foreach (string[] encapsulation in Encapsulations)
+            {
+
+                while (forbracketdetection.Contains(encapsulation[0]) && forbracketdetection.Contains(encapsulation[1]))
+                {
+                    int start = forbracketdetection.IndexOf(encapsulation[0]);
+                    int end = forbracketdetection.IndexOf(encapsulation[1]);
+
+                    if (end > lastBracketPosition)
+                    {
+                        lastBracketPosition = end;
+                    }
+
+                    if (start < firstBracketPosition )
+                    {
+                        firstBracketPosition = start;
+                    }
+
+                    if (start > -1 && end > -1)
+                    {
+                        bracket_positions.Add(start, end);
+
+                        try
+                        {
+
+
+                            char[] ch = forbracketdetection.ToCharArray();
+                            ch[start] = '|';
+                            ch[end] = '|';
+                            forbracketdetection = new string(ch);
+                        }
+                        catch
                         {
                             break;
                         }
-                        indexToRemove++;
-                    }
-                    if (foundSeason)
-                    {
-
-                        wordsList.RemoveAt(indexToRemove);
-                    }
-
-                }
-               
-                foreach (string word in wordsToRemove)
-                {
-                    try
-                    {
-                        wordsList.Remove(word);
-                    }
-                    catch
-                    {
-
                     }
                 }
+            }
 
-                for (int i = 0; i < wordsList.Count; i++)
+            //Extract everything outside and inside encapsulation brackets and put values in a single string
+
+            if (bracket_positions.Count > 0)
+            {
+                int previousEnd = 0;
+                foreach (KeyValuePair<int, int> bracketPosition in bracket_positions)
                 {
-                    if (Array.IndexOf(Splitters, wordsList[i]) == -1)
+                    string insideBrackets = fullString.Substring(bracketPosition.Key + 1, bracketPosition.Value - bracketPosition.Key - 1);
+
+
+                    if (bracketIndex == 1 && firstBracketPosition == 0)
                     {
-                        if (wordsList[i].Any(c => char.IsDigit(c)))
-                        {
-
-                            string numberword = wordsList[i];
-
-                            if (numberword.Contains('v'))
-                            {
-                                string[] numbers = wordsList[i].Split('v');
-                                numberword = new string(numbers[0].Where(x => char.IsDigit(x)).ToArray());
-
-
-                                remainingIntegers.Add(numberword, i);
-                            }
-
-                            if (numberword.Contains('S'))
-                            {
-                                remainingIntegers.Add(numberword, i);
-                            }
-                            else
-                            {
-                                if (i == 0 && !RomanNumbers.ContainsKey(numberword))
-                                {
-                                    remainingStrings.Add(numberword, i);
-                                }
-                                else if (wordsList[i].Length < 5)//>= 5 possibly crc32
-                                {
-
-                                    remainingIntegers.Add(numberword, i);
-                                }
-                                else if (wordsList[i].Length > 5)//>= 5 possibly crc32
-                                {
-                                    crc32.Add(wordsList[i], i);
-                                }
-                                else if (i == 0 && RomanNumbers.ContainsKey(wordsList[i]))
-                                {
-                                    int value = RomanNumbers[numberword];
-                                    if (value != 1)
-                                    {
-
-                                        remainingIntegers.Add(numberword, i);
-                                    }
-                                    else
-                                    {
-                                        remainingStrings.Add(numberword, i);
-                                    }
-                                }
-                            }
-
-                         
-                        }
-                        else
-                        {
-                            if (wordsList[i].Trim().Length >= 1 && !wordsList[i].Contains(" "))
-                            {
-                                if (!RomanNumbers.ContainsKey(wordsList[i]))
-                                {
-                                    remainingStrings.Add(wordsList[i], i);
-                                }
-                                else
-                                {
-                                    int value = RomanNumbers[wordsList[i]];
-                                    if (value != 1)
-                                    {
-                                        if (wordsList[i].Contains('v'))
-                                        {
-                                            string[] numbers = wordsList[i].Split('v');
-                                            remainingIntegers.Add(numbers[0], i);
-                                        }
-                                        else
-                                        {
-                                            remainingIntegers.Add(wordsList[i], i);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        remainingStrings.Add(wordsList[i], i);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-
-
-                if (resultparser.Key == "notencapsulated")
-                {
-                    int indexcounter = 0;
-                    foreach (KeyValuePair<string, int> remainingInteger in remainingIntegers)
-                    {
-                        if (remainingIntegers.Count == 1)
-                        {
-                            if (remainingInteger.Key.ToUpper().Contains("S") && remainingInteger.Key.ToUpper().Contains('E'))
-                            {
-                                string[] splitted = remainingInteger.Key.Split('E');
-                                string episodestring = splitted[1];
-                                string seasonstring = splitted[0].Substring(1);
-
-                                seasonstring = new string(seasonstring.Where(x => char.IsDigit(x)).ToArray());
-                                episodestring = new string(episodestring.Where(x => char.IsDigit(x)).ToArray());
-                                episode.Add(episodestring, remainingInteger.Value);
-
-                                if (!foundSeason)
-                                {
-                                    season.Add(seasonstring, remainingInteger.Value);
-                                }
-                            }
-                            else if (remainingInteger.Key.ToUpper().Contains("S"))
-                            {
-                                string seasonstring = remainingInteger.Key.Substring(1);
-                                seasonstring = new string(seasonstring.Where(x => char.IsDigit(x)).ToArray());
-
-                                if (!foundSeason)
-                                {
-                                    season.Add(seasonstring, remainingInteger.Value);
-                                }
-                            }
-                            else if (remainingInteger.Key.ToUpper().Contains("S"))
-                            {
-                                string episodestring = remainingInteger.Key.Substring(1);
-                                episodestring = new string(episodestring.Where(x => char.IsDigit(x)).ToArray());
-                                episode.Add(episodestring, remainingInteger.Value);
-                            }
-                            else
-                            {
-                                string episodestring = new string(remainingInteger.Key.Where(x => char.IsDigit(x)).ToArray());
-                                episode.Add(episodestring, remainingInteger.Value);
-                            }
-
-                        }
-                        else
-                        {
-                            string numbercontainingstring = remainingInteger.Key;
-
-                            if (remainingIntegers.Count == 2 && indexcounter > 0)
-                            {
-                                if (remainingInteger.Key.ToUpper().Contains("S") && remainingInteger.Key.ToUpper().Contains('E'))
-                                {
-                                    string[] splitted = remainingInteger.Key.Split('E');
-                                    string episodestring = splitted[1];
-                                    string seasonstring = splitted[0].Substring(1);
-                                    seasonstring = new string(seasonstring.Where(x => char.IsDigit(x)).ToArray());
-                                    episodestring = new string(episodestring.Where(x => char.IsDigit(x)).ToArray());
-                                    episode.Add(episodestring, remainingInteger.Value);
-
-                                    if (!foundSeason)
-                                    {
-                                        season.Add(seasonstring, remainingInteger.Value);
-                                        foundSeason = true;
-                                    }
-                                }else if (remainingInteger.Key.ToUpper().Contains("S"))
-                                {
-                                    string seasonstring = remainingInteger.Key.Substring(1);
-                                    seasonstring = new string(seasonstring.Where(x => char.IsDigit(x)).ToArray());
-
-                                    if (!foundSeason)
-                                    {
-                                        season.Add(seasonstring, remainingInteger.Value);
-                                        foundSeason = true;
-                                    }
-                                } else  if (remainingInteger.Key.ToUpper().Contains('E'))
-                                {
-                                    string episodestring = remainingInteger.Key.Substring(1);
-                                    episodestring = new string(episodestring.Where(x => char.IsDigit(x)).ToArray());
-                                    episode.Add(episodestring, remainingInteger.Value);
-                                }
-                                else
-                                {
-                                    string episodestring = new string(remainingInteger.Key.Where(x => char.IsDigit(x)).ToArray());
-                                    episode.Add(episodestring, remainingInteger.Value);
-                                }
-                            }
-                            else if (remainingIntegers.Count == 2 && indexcounter == 0)
-                            {
-                                if (remainingInteger.Key.ToUpper().Contains("S") && remainingInteger.Key.ToUpper().Contains('E'))
-                                {
-                                    string[] splitted = remainingInteger.Key.Split('E');
-                                    string episodestring = splitted[1];
-                                    string seasonstring = splitted[0].Substring(1);
-                                    seasonstring = new string(seasonstring.Where(x => char.IsDigit(x)).ToArray());
-                                    episodestring = new string(episodestring.Where(x => char.IsDigit(x)).ToArray());
-                                    episode.Add(episodestring, remainingInteger.Value);
-
-                                    if (!foundSeason)
-                                    {
-                                        season.Add(seasonstring, remainingInteger.Value);
-                                        foundSeason = true;
-                                    }
-                                }
-                                else if (remainingInteger.Key.ToUpper().Contains("S"))
-                                {
-                                    string seasonstring = remainingInteger.Key.Split('S')[1];
-
-                                    if (!foundSeason)
-                                    {
-                                        season.Add(seasonstring, remainingInteger.Value);
-                                        foundSeason = true;
-                                    }
-                                }
-                                else if (remainingInteger.Key.ToUpper().Contains('E'))
-                                {
-                                    string episodestring = remainingInteger.Key.Substring(1);
-                                    episodestring = new string(episodestring.Where(x => char.IsDigit(x)).ToArray());
-                                    episode.Add(episodestring, remainingInteger.Value);
-                                }
-                                else
-                                {
-                                    if (!foundSeason)
-                                    {
-                                        string seasonstring = new string(remainingInteger.Key.Where(x => char.IsDigit(x)).ToArray());
-                                        season.Add(remainingInteger.Key, remainingInteger.Value);
-                                        foundSeason = true;
-                                    }
-                                    remainingStrings.Add(remainingInteger.Key, remainingInteger.Value);
-                                }
-                            }
-                            else
-                            {
-                                if (remainingIntegers.Count == 3 && indexcounter == 1)
-                                {
-                                    if (!foundSeason)
-                                    {
-                                        string seasonstring = new string(remainingInteger.Key.Where(x => char.IsDigit(x)).ToArray());
-                                        season.Add(remainingInteger.Key, remainingInteger.Value);
-                                        foundSeason = true;
-                                    }
-                                }
-                                else if (remainingIntegers.Count == 3 && indexcounter == 2)
-                                {
-                                    if (remainingInteger.Key.ToUpper().Contains("S") && remainingInteger.Key.ToUpper().Contains('E'))
-                                    {
-                                        string[] splitted = remainingInteger.Key.Split('E');
-                                        string episodestring = splitted[1];
-                                        string seasonstring = splitted[0].Substring(1);
-                                        seasonstring = new string(seasonstring.Where(x => char.IsDigit(x)).ToArray());
-                                        episodestring = new string(episodestring.Where(x => char.IsDigit(x)).ToArray());
-                                        episode.Add(episodestring, remainingInteger.Value);
-                                        if (!foundSeason)
-                                        {
-                                            season.Add(seasonstring, remainingInteger.Value);
-                                            foundSeason = true;
-                                        }
-                                    }
-                                    else if (remainingInteger.Key.ToUpper().Contains("S"))
-                                    {
-                                        string seasonstring = remainingInteger.Key.Substring(1);
-                                        seasonstring = new string(seasonstring.Where(x => char.IsDigit(x)).ToArray());
-
-                                        if (!foundSeason)
-                                        {
-                                            season.Add(seasonstring, remainingInteger.Value);
-                                            foundSeason = true;
-                                        }
-                                    }
-                                    else if (remainingInteger.Key.ToUpper().Contains("S"))
-                                    {
-                                        string episodestring = remainingInteger.Key.Substring(1);
-
-                                        episodestring = new string(episodestring.Where(x => char.IsDigit(x)).ToArray());
-                                        episode.Add(episodestring, remainingInteger.Value);
-                                    }
-                                    else
-                                    {
-                                        string episodestring = new string(remainingInteger.Key.Where(x => char.IsDigit(x)).ToArray());
-                                        episode.Add(episodestring, remainingInteger.Value);
-                                    }
-                                }
-                            }
-                        }
-
-                        indexcounter++;
+                        not_encapsulatedString = "";
                     }
 
-
-
-                    Dictionary<string, int> title = new Dictionary<string, int>();
-
-                    string combined = "";
-                    foreach (KeyValuePair<string, int> wordremaining in remainingStrings)
+                    if (lastBracketPosition < fullString.Length - 5 && bracketIndex == 0)// (minus extension)
                     {
-                        combined += wordremaining.Key + " ";
+                        string behindEncapsulation = fullString.Substring(lastBracketPosition + 1);
+
+                        encapsulatedString += behindEncapsulation + " ";
                     }
-                    title.Add(combined, 0);
-                    if (episode.Count == 0)
+
+                    encapsulatedString += insideBrackets + " ";
+
+
+                    if (previousEnd != 0 && previousEnd < lastBracketPosition)
                     {
-                        episode.Add("-1", 0);
+                        not_encapsulatedString += fullString.Substring(previousEnd + 1, bracketPosition.Key - previousEnd - 1) + " ";
                     }
+                    else if (previousEnd == 0 && firstBracketPosition != 0)
+                    {
+                        not_encapsulatedString += fullString.Substring(previousEnd, firstBracketPosition) + " ";
+                    }
+                    else if(previousEnd == 0 && bracketIndex == 0)
+                    {
+                        not_encapsulatedString = fullString.Substring(bracketPosition.Value) + " ";
+                    }
+
+                    if (firstBracketPosition > 0 && bracketIndex == 0)
+                    {
+                        not_encapsulatedString = fullString.Substring(0, firstBracketPosition - 1);
+                    }
+
+                    previousEnd = bracketPosition.Value;
+
+                    bracketIndex++;
                     
+                }
 
-                    dictionaryResult.Add("Title", title);
-                    dictionaryResult.Add("Episode", episode);
 
-                    if (dictionaryResult.ContainsKey("Season"))
+                //remove already parsed words from the encapsulated and not encapsulated strings
+                foreach (string parsedWord in wordsParsed)
+                {
+                    encapsulatedString = encapsulatedString.ToLower().Replace(parsedWord.ToLower(), "");
+                    not_encapsulatedString = not_encapsulatedString.ToLower().Replace(parsedWord.ToLower(), "");
+                }
+
+                //split the encapsulated string.
+                foreach (string splitter in Splitters)
+                {
+                    if (splitter != "-")//some subgroups contain -
                     {
-                        if (season.Count != 0)
-                        {
-                            dictionaryResult["Season"] = season;
-                        }
+                        encapsulatedString = encapsulatedString.Replace(splitter, "|");
+                    }
+                }
+
+                //remove all special chars except for - & :, as they can be used to seperate the generic anime title (such as "Sword Art Online") from the specific title ( "Alicization") [Sword Art Online - Alicization]
+                foreach (string removeThisChar in SpecialChars)
+                {
+                    if (removeThisChar != "-" && removeThisChar != ":") 
+                    {
+                        encapsulatedString = encapsulatedString.Replace(removeThisChar, "|");
+                    }
+                }
+
+                foreach (string encapsulatedWord in encapsulatedString.Split('|'))
+                {
+                    if (encapsulatedWord.Length > 1)//sometimes a seperator still persists, if the word is one char long, its not a word
+                    {
+                        encapsulated.Add(encapsulatedWord);
+                    }
+                }
+            }
+            else
+            {
+                //incase no incapusulation is happening, skip all this and use the input string for further parsing
+                not_encapsulatedString = fullString;
+            }
+
+
+
+            foreach (string word in wordsParsed)
+            {
+                words.Remove(word);
+            }
+
+            //the name of the subgroup most often is within brackets at the beginning of a file name: [Hatsuyuki]_Sword_Art_Online_II_21_[1280x720][3E99D75F].mp4 -> Hatsuyuki == subgroup, 
+            //but sometimes the sub group is actually not within brackets. But in that case, its at the end, after (possible) bracketes:Bakemonogatari_Ep13_[1080p,BluRay,x264]_-_qIIq-THORA.mkv -> qIIq-THORA == Subgroup
+
+
+
+            if (not_encapsulatedString.Contains("("))
+            {
+                not_encapsulatedString = not_encapsulatedString.Split('(')[0];
+            }
+
+            if (not_encapsulatedString.Contains("{"))
+            {
+                not_encapsulatedString = not_encapsulatedString.Split('{')[0];
+            }
+
+            if (not_encapsulatedString.Contains("["))
+            {
+                not_encapsulatedString = not_encapsulatedString.Split('[')[0];
+            }
+           
+            string animeWithoutEpisodeNum =  Regex.Match(not_encapsulatedString, @"^[^0-9]*").Value.Trim();
+
+            if (animeWithoutEpisodeNum.Length <= 1)
+            {
+                animeWithoutEpisodeNum = not_encapsulatedString;
+            }
+
+            string mainAnime = animeWithoutEpisodeNum;
+            string subAnime = animeWithoutEpisodeNum;
+
+            if (animeWithoutEpisodeNum.Contains(':'))
+            {
+                mainAnime = animeWithoutEpisodeNum.Split(':')[0];
+                subAnime = animeWithoutEpisodeNum.Split(':')[1];
+            }
+            else if (animeWithoutEpisodeNum.Contains("   "))
+            {
+                mainAnime = animeWithoutEpisodeNum.Split(new string[] { "   " }, StringSplitOptions.None)[0];
+                subAnime = animeWithoutEpisodeNum.Split(new string[] { "   " }, StringSplitOptions.None)[1];
+            }
+            else if (animeWithoutEpisodeNum.Contains('-'))
+            {
+                mainAnime = animeWithoutEpisodeNum.Split('-')[0];
+                subAnime = animeWithoutEpisodeNum.Split('-')[1];
+            }         
+
+
+            foreach (string removeThisChar in SpecialChars)
+            {
+                mainAnime = mainAnime.Replace(removeThisChar, " ").Trim();
+                subAnime = subAnime.Replace(removeThisChar, " ").Trim(); 
+            }
+
+            foreach (string toRemove in WeebFileNameTags.WordsToRemove)
+            {
+                mainAnime = mainAnime.Replace(toRemove, "");
+                subAnime = subAnime.Replace(toRemove, "");
+            }
+
+            if (mainAnime == subAnime)
+            {
+                subAnime = "";
+            }
+
+            if (not_encapsulatedString.Contains("v"))
+            {
+                not_encapsulatedString = not_encapsulatedString.Split('v')[0];
+            }
+
+            string episodeNumber = new String(not_encapsulatedString.Where(Char.IsDigit).ToArray());
+
+           
+
+            result.Add("Episode", episodeNumber);
+            
+            foreach (string word in words)
+            {
+                Regex regex = new Regex(@"[A-Za-z]+[\d@]+[\w@]*|[\d@]+[A-Za-z]+[\w@]*");
+                Match match = regex.Match(word);
+
+                if (match.Value.Contains("S") && match.Value.Contains("E"))
+                {
+                    if (result.ContainsKey("Season"))
+                    {
+                        result["Season"] = match.Value.Split('S')[1].Split('E')[0];
                     }
                     else
                     {
-                        if (season.Count == 0)
-                        {
-                            season.Add("0", 0);
-                        }
-                        dictionaryResult.Add("Season", season);
+                        result.Add("Season", match.Value.Split('S')[1].Split('E')[0]);
                     }
-                    //dictionaryResult.Add("Remaining_Words_Not_Encapsulated", remainingStrings);
-                    //dictionaryResult.Add("Remaining_Numbers_Not_Encapsulatedd", remainingIntegers);
 
-                }
-                else
-                {
-                    Dictionary<string, int> possibleReleaseGroup = new Dictionary<string, int>();
-                    int indexcounter = 0;
-
-                    string combinedSubGroupName = "";
-                    foreach (KeyValuePair<string, int> wordremaining in remainingStrings)
+                    if (result.ContainsKey("Episode"))
                     {
-
-                        combinedSubGroupName += wordremaining.Key + " ";
-                        indexcounter++;
+                        result["Episode"] = match.Value.Split('E')[1];
                     }
-
-                    possibleReleaseGroup.Add(combinedSubGroupName, 0);
-                    dictionaryResult.Add("Release_Group", possibleReleaseGroup);
-                    dictionaryResult.Add("CRC32", crc32);
-
-                    if (!foundSeason)
+                    else
                     {
-                        foreach (string word in wordsList)
-                        {
-                            if (word.Any(c => char.IsDigit(c))){
-                                if (word.Contains("S"))
-                                {
-                                    if (word.Contains("E"))
-                                    {
-                                        string seasonstring = word.Split('S')[1].Split('E')[0];
-                                        seasonstring = new string(seasonstring.Where(x => char.IsDigit(x)).ToArray());
-
-                                        season.Add(seasonstring, 0);
-                                        foundSeason = true;
-                                    }
-                                    else
-                                    {
-                                        string seasonstring = word.Split('S')[1];
-                                        seasonstring = new string(seasonstring.Where(x => char.IsDigit(x)).ToArray());
-
-                                        season.Add(seasonstring, 0);
-                                        foundSeason = true;
-                                    }
-                                }
-                            }
-                           
-                        }
-
-                        if (season.Count == 0)
-                        {
-                            season.Add("0", 0);
-                        }
-
-
-                        if (dictionaryResult.ContainsKey("Season"))
-                        {
-                            dictionaryResult["Season"] = season;
-                        }
-                        else
-                        {
-                            dictionaryResult.Add("Season", season);
-                        }
+                        result.Add("Episode", match.Value.Split('E')[1]);
                     }
-
-
-                    //dictionaryResult.Add("Remaining_Words_Encapsulated", remainingStrings);
-                    //dictionaryResult.Add("Remaining_Numbers_Encapsulated", remainingIntegers);
                 }
-
-
-              
-
             }
 
-            return dictionaryResult;
+
+            result.Add("MainAnimeTitle", mainAnime);
+            result.Add("SubAnimeTitle", subAnime);
+
+            if (encapsulated.Count > 0)
+            {
+                result.Add("SubGroup", encapsulated[0]);
+            }
+
+            if (encapsulated.Count > 1)
+            {
+                result.Add("CRC32", encapsulated[encapsulated.Count - 1]);
+            }
+
+            result.Add("InsideEncapsulation", string.Join(" ", encapsulated));
+            result.Add("OutsideEncapsulation", string.Join(" ", not_encapsulated));
+            result.Add("NotParsedWords", string.Join(" ", words)); 
+
+
+            return result;
 
         }
+
+     
     }
 }
